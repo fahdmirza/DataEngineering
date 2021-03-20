@@ -1,0 +1,309 @@
+1- In this example, sum and row_number functions works on each row of whole window.
+
+   
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,sum(t) over () as SumEachRow, row_number() over (order by t) as RN from x;
+
+
+
+2- In this example, sum and row_number functions works on each row of each partition of whole window. This window is partitioned on column t.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,sum(t) over (partition by t) as SumEachRow, row_number() over (partition by t order by t) as RN from x;
+
+
+
+3- In following example, we have divided the window into 2 partitions by using case statement within partition clause. One partition is when t=1, and other partition is composed of rest of rows.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,sum(t) over (partition by CASE WHEN t = 1 THEN t ELSE NULL END) as SumEachRow, row_number() over (partition by CASE WHEN t = 1 THEN t ELSE NULL END order by t) as RN from x;
+
+
+
+4- Below example is variant of example 3. In this the window function row_number is working on whole window instead of partition whereas the window function sum is working on partitions.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,sum(t) over (partition by CASE WHEN t = 1 THEN t ELSE NULL END) as SumEachRow, row_number() over (order by t) as RN from x;
+
+
+
+5- This example uses lag function to return previous value of window function. For lag function, the value for first row is always null as there is no previous value.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,lag(t) over (order by t) as Previous_t from x;
+
+
+
+6- This example uses lead function to return next value of window function. For lead function, the value of last row is always null as there is no next value.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,lead(t) over (order by t) as Next_t from x;
+
+
+
+7- This example shows that First_value function returns first value in window for each row.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,first_value(t) over (order by t) as First_t from x;
+
+
+
+8- This example shows that First_value function returns first value in each partition of window for each row.
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,first_value(t) over (partition by t order by t) as First_t from x;
+
+
+
+9- This example shows that last_value function returns last value in window for each row.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,last_value(t) over (order by t ROWS BETWEEN
+
+           UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as Last_t from x;
+
+
+
+10- This example shows that Last_value function returns last value in each partition of window for each row.
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,last_value(t) over (partition by t order by t ROWS BETWEEN
+
+           UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as Last_t from x;
+
+
+
+For explanation of rows between unbounded clause, see this 
+
+11- This example shows the rank() function which is useful for Top N, or Bottom N sort of queries. Following is for whole window. The main idea is that rank starts from 1 from first row and then rank remains same for rows with same value within window. When value changes, the rank increments as per number of lines from top. 
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,rank(t) over (order by t) as Rank from x;
+
+
+
+12- This example shows the rank() function which is useful for Top N, or Bottom N sort of queries. Following is for each partition of window.
+
+
+
+With x as ( 
+
+   SELECT 'tom' as name, 1 AS t from dual
+
+   UNION ALL
+
+   SELECT 'harry' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'jade' as name,2 AS t  from dual
+
+   UNION ALL
+
+   SELECT 'ponzi' as name,3 AS t  from dual
+
+)
+
+select name,t,rank() over (partition by t order by t) as Rank from x;
